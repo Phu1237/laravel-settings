@@ -22,10 +22,11 @@ Global setting for laravel. Can use in controller, blade, etc.
 |<7.x|Not tested yet|
 
 ## Installation
-Require this package with composer
+- Require this package with composer:
 ```bash
 composer require phu1237/laravel-settings
 ```
+
 ### Laravel auto-discovery:
 
 Laravel uses Package Auto-Discovery, so doesn't require you to manually add the ServiceProvider.
@@ -42,12 +43,38 @@ If you want to use the facade to log messages, add this to your facades in app.p
 'Setting' => Phu1237\LaravelSettings\Facades\Setting::class,
 ```
 
+- Then run migrate to create settings table:
+```bash
+php artisan migrate
+```
+
+- Done. You can use all functions now.
+
 ## Usage
-You can use both **Facade** and **Helpers** way
+
+**Example setting row:**
+![Screenshot](screenshot.png)
+
+You can use both **Facade** and **Helpers** to get or set the setting.
 
 ### Facade
 ```php
+// Get
 Setting::all();
+Setting::get('key');
+Setting::value('key');
+Setting::meta('key');
+Setting::meta('key', 'attribute');
+// Set
+Setting::set('key', 'value');
+Setting::set(['key' => 'value']);
+Setting::value('key', 'value');
+Setting::value(['key' => 'value']);
+Setting::meta('key', 'attribute', 'value');
+Setting::meta('key', ['attribute' => 'value']);
+// Other
+Setting::has('key');
+Setting::forget('key');
 ```
 
 ### Helpers
@@ -91,7 +118,7 @@ settings()->meta('key', [
 ]);
 ```
 
-Other helper function(s)
+Other
 ```php
 // Get all settings
 settings()->all();
