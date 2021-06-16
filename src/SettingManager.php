@@ -2,36 +2,116 @@
 
 namespace Phu1237\LaravelSettings;
 
-use Illuminate\Database\Eloquent\Collection;
+use Phu1237\LaravelSettings\SessionManager;
 use Phu1237\LaravelSettings\Models\Setting as SettingModel;
 
 class SettingManager
 {
     public function __construct()
     {
+    }
 
+    /**
+     * Access session manager
+     *
+     * @return SessionManager
+     */
+    private function session(): SessionManager
+    {
+        return new SessionManager();
+    }
+
+    /**
+     * Get all the settings
+     *
+     * @return Collection
+     */
+    public function all()
+    {
+        if ($this->session()->isEnable()) {
+            $all = $this->session()->all();
+            if ($all != null) {
+                return $all;
+            }
+        }
+        $model = SettingModel::all();
+        $collect = collect();
+        foreach ($model as $item) {
+            $setting = new Setting($item->key, $item->value, $item->meta);
+            $collect->push($setting);
+        }
+
+        return $collect;
     }
 
     /**
      * Check has setting key or not
      *
-     * @param string $key
+     * @param  string|null $key
      * @return bool
      */
-    public function has(string $key): bool
+    public function has(string $key = null): bool
     {
-        return (bool)SettingModel::find($key);
+        return (bool) SettingModel::find($key);
     }
 
     /**
-     * @param string|array $key Setting key
-     * @param null $value New setting value
-     * @return \Illuminate\Support\Collection|SettingModel
+     * @param  string       $key   Key of Setting
+     * @param  string|null  $value Value of Setting
+     * @param  string|array $metas Meta(s) of Setting
+     * @return mixed
+     */
+    public function store(string $key, string $value, $meta = null)
+    {
+        $new_setting_value = ['key' => $key, 'value' => $value];
+        if ($meta != null) {
+            if (is_array($meta)) {
+                $meta = json_encode($meta);
+            }
+
+            $new_setting_value['meta'] = json_decode(json_encode($meta));
+        }
+
+        SettingModel::updateOrCreate(
+            ['key' => $key],
+            $new_setting_value,
+        );
+        $this->session()->forget($key);
+
+        return true;
+    }
+
+    /**
+     * Get setting
+     *
+     * @param  string              $key Key of setting
+     * @return SettingModel|null
+     */
+    public function get(string $key)
+    {
+        if ($this->session()->isEnable()) {
+            $setting = $this->session()->getOrSet($key);
+        } else {
+            $model = SettingModel::find($key);
+            if ($model != null) {
+                $setting = new Setting($model->key, $model->value, $model->meta);
+            }
+        }
+
+        return $setting ?? null;
+    }
+
+    /**
+     * @param  string|array $key   Setting key
+     * @param  null         $value New setting value
+     * @return mixed
      */
     public function set($key, $value = null)
     {
+        // If $key is an array
         if (is_array($key)) {
             $collection = collect();
+            // Loop set value for each item of array
             foreach ($key as $item => $val) {
                 $collection->push($this->setValue($item, $val));
             }
@@ -43,16 +123,51 @@ class SettingManager
     }
 
     /**
-     * Set setting value
+     * Delete setting(s)
      *
-     * @param string|array $key Setting key
-     * @param $value
+     * @param  string|array $key Key(s) of setting want to forget
+     * @return bool
+     */
+    public function forget($key, bool $destroy = true)
+    {
+        if (is_array($key)) {
+            foreach ($key as $item) {
+                if ($destroy == true) {
+                    SettingModel::destroy($item);
+                }
+                $this->session()->forget($item);
+            }
+        } else {
+            if ($destroy == true) {
+                SettingModel::destroy($key);
+            }
+            $this->session()->forget($key);
+        }
+
+        return true;
+    }
+
+    /**
+     * Flush all setting items
+     */
+    public function flush()
+    {
+        SettingModel::truncate();
+        $this->session()->flush();
+    }
+
+    /**
+     * Get or set setting value
+     *
+     * @param  string|array $key
+     * @param  null         $default
      * @return mixed
      */
-    private function setValue($key, $value = null)
+    public function value($key, $default = '')
     {
         if (is_array($key)) {
             $collection = collect();
+            // Loop set value for each item of array
             foreach ($key as $item => $val) {
                 $collection->push($this->setValue($item, $val));
             }
@@ -60,90 +175,63 @@ class SettingManager
             return $collection;
         }
 
-        if ($this->store($key, $value)) {
-            return SettingModel::find($key);
+        return $this->getValue($key, $default);
+    }
+
+    /**
+     * Get setting value
+     *
+     * @param  string      $key     Key of setting
+     * @param  string|null $default Default value if not found key value
+     * @return string
+     */
+    private function getValue(string $key, string $default = ''): string
+    {
+        $settings = $this->get($key);
+        if (!isset($settings)) {
+            return $default ?? ''; // If not found setting value
+        }
+
+        return $settings->value;
+    }
+
+    /**
+     * Set setting value
+     *
+     * @param  string  $key     Setting key
+     * @param  null    $value
+     * @return mixed
+     */
+    private function setValue(string $key, $value = null)
+    {
+        // Successfully store item
+        if ($store = $this->store($key, $value)) {
+            return $store;
         }
 
         return null;
     }
 
     /**
-     * @param string $key Key of Setting
-     * @param string|null $value Value of Setting
-     * @param array $metas Meta(s) of Setting
-     * @return mixed
-     */
-    public function store(string $key, string $value = null, array $metas = [])
-    {
-        if (!SettingModel::find($key)) {
-            $setting = [
-                'key' => $key,
-                'value' => $value,
-            ];
-            if ($metas != null) $setting['meta'] = json_decode(json_encode($metas));
-            SettingModel::create($setting);
-        } else {
-            $setting = SettingModel::find($key);
-            if ($value != null) {
-                $setting->value = $value;
-            }
-            if (count($metas) > 0) {
-                $setting->meta = json_decode(json_encode($metas));
-            }
-            $setting->save();
-            $this->cache()->refresh($key);
-        }
-
-        return SettingModel::find($key);
-    }
-
-    public function cache()
-    {
-        return new CacheManager();
-    }
-
-    /**
-     * Get all the settings
-     *
-     * @return Collection
-     */
-    public function all()
-    {
-        return SettingModel::all();
-    }
-
-    public function metaHTML($key, $meta)
-    {
-        if (!isset(SettingModel::find($key)->meta->$meta)) {
-            return false;
-        }
-        $meta = $this->meta($key);
-        $type = $meta->type;
-        $placeholder = $meta->placeholder;
-        $value = $this->getValue($key);
-
-        return view('settings::components.input', compact('key', 'type', 'placeholder', 'value'));
-    }
-
-    /**
      * Get or set setting meta(s)
      *
-     * @param string|null $key Setting key
-     * @param string|null $attribute Meta attribute(s)
-     * @param null $value
+     * @param  string  $key       Setting key
+     * @param  null    $attribute Meta attribute(s)
+     * @param  string  $default
      * @return mixed
      */
-    public function meta(string $key, $attribute = null, $value = null)
+    public function meta(string $key, $attribute = null, string $default = '')
     {
+        // If attribute is exist
         if ($attribute != null) {
+            /**
+             * If attribute is an array, set value for each attribute in array
+             * If not, get the value of attribute
+             */
             if (is_array($attribute)) {
                 return $this->setMetaAttr($key, $attribute);
-            } else if (is_string($attribute)) {
-                if ($value != null) {
-                    return $this->setMetaAttr($key, [$attribute => $value]);
-                }
-
-                return $this->getMetaAttr($key, $attribute);
+            } else {
+                return $this->getMetaAttr($key, $attribute, $default);
             }
         }
 
@@ -151,43 +239,9 @@ class SettingManager
     }
 
     /**
-     * Set setting meta attribute value
-     *
-     * @param string $key Key of setting
-     * @param array $attributes
-     * @return bool|SettingModel
-     */
-    private function setMetaAttr(string $key, array $attributes)
-    {
-        $setting = SettingModel::where('key', $key);
-        $meta = [];
-        foreach ($attributes as $key => $value) {
-            $meta['meta->' . $key] = $value;
-        }
-        $setting->update($meta);
-        $this->cache()->refresh($key);
-
-        return $setting->first();
-    }
-
-    /**
-     * Get setting meta attribute value
-     *
-     * @param string $key Key of setting
-     * @param string $attribute Meta attribute want to get
-     * @return string|null
-     */
-    private function getMetaAttr(string $key, string $attribute)
-    {
-        $meta = $this->getMeta($key);
-
-        return isset($meta->$attribute) ? $meta->$attribute : null;
-    }
-
-    /**
      * Get setting meta
      *
-     * @param string $key Key of setting
+     * @param  string   $key Key of setting
      * @return Object
      */
     private function getMeta(string $key)
@@ -200,61 +254,34 @@ class SettingManager
     }
 
     /**
-     * Get setting
+     * Get setting meta attribute value
      *
-     * @param string $key Key of setting
-     * @return SettingModel
+     * @param  string        $key       Key of setting
+     * @param  string        $attribute Meta attribute want to get
+     * @param  string        $default
+     * @return string|null
      */
-    public function get(string $key)
+    private function getMetaAttr(string $key, string $attribute, string $default = ''): string
     {
-        if ($this->cache()->isEnabled()) {
-            $setting = $this->cache()->get($key);
-        } else {
-            $setting = SettingModel::find($key);
-        }
-
-        return $setting;
+        return $this->getMeta($key)->$attribute ?? $default;
     }
 
     /**
-     * Get setting value
+     * Set setting meta attribute value
      *
-     * @param string $key Key of setting
-     * @param string|null $default Default value if not found key value
-     * @return string
+     * @param  string              $key          Key of setting
+     * @param  array               $attributes
+     * @return bool|SettingModel
      */
-    private function getValue(string $key, string $default = null)
+    private function setMetaAttr(string $key, array $attributes)
     {
-        $settings = $this->get($key);
-        if (!isset($settings) && isset($default)) {
-            return $default; // If not found setting value
+        $setting = SettingModel::where('key', $key);
+        $meta = [];
+        foreach ($attributes as $key => $value) {
+            $meta['meta->'.$key] = $value;
         }
-
-        return $settings->value;
-    }
-
-    public function value($key, $value = null)
-    {
-        if (is_array($key)) {
-            return $this->setValue($key);
-        }
-        if ($value != null) {
-            return $this->setValue($key, $value);
-        }
-
-        return $this->getValue($key);
-    }
-
-    /**
-     * Delete setting(s)
-     *
-     * @param string|array $key Key(s) of setting want to forget
-     * @return bool
-     */
-    public function forget($key)
-    {
-        SettingModel::destroy($key);
-        $this->cache()->forget($key);
+        $setting->update($meta);
+        $this->session()->refresh($key);
 
         return true;
     }

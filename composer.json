@@ -25,7 +25,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Phu1237\\LaravelSettings\\SettingsServiceProvider"
+              "Phu1237\\LaravelSettings\\ServiceProvider"
             ],
             "aliases": {
                 "Setting": "Phu1237\\LaravelSettings\\Facades\\Setting"

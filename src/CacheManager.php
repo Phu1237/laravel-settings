@@ -2,40 +2,39 @@
 
 namespace Phu1237\LaravelSettings;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Cache;
 use Phu1237\LaravelSettings\Models\Setting;
-use Psr\SimpleCache\InvalidArgumentException;
 
 class CacheManager
 {
-    private $isEnabled;
+    private $isSupportTags;
     private $cache;
+    private $prefix;
+    private $ttl;
 
     public function __construct()
     {
-        $this->isEnabled = config('settings.cache_enabled');
-        if ($this->isEnabled()) {
-            $prefix = config('settings.cache_prefix');
-            if ($this->isSupportTags()) {
-                $this->cache = Cache::tags($prefix);
-            }
-            $this->cache = cache(); // Laravel cache helper
+        $this->prefix = config('settings.sessions.cache.prefix');
+        $this->ttl = config('settings.sessions.cache.ttl');
+        $this->isSupportTags = $this->isSupportTags();
+        if ($this->isSupportTags) {
+            $this->cache = Cache::tags($this->prefix);
         }
+        $this->cache = cache(); // Laravel cache helper
     }
 
     /**
-     * Check cache enable or disable
+     * Get value from $cache
      *
-     * @return bool
+     * @return mixed
      */
-    public function isEnabled(): bool
+    private function cache()
     {
-        return $this->isEnabled;
+        return $this->cache;
     }
 
     /**
-     * Check cache driver support tags or not
+     * Check if cache driver support tags or not
      *
      * @return bool
      */
@@ -49,66 +48,95 @@ class CacheManager
         return true;
     }
 
-    public function forget(string $key)
+    /**
+     * If cache driver support tags, return original key
+     * If not return key with prefix
+     *
+     * @param  string   $key
+     * @return string
+     */
+    private function key(string $key): string
     {
-        return $this->cache()->forget($key);
+        return $this->isSupportTags ? $key : $this->prefix.$key;
     }
 
     /**
-     * Get value from $cache
+     * Get all cache items
      *
-     * @return \Illuminate\Cache\CacheManager|Application|mixed
+     * @return mixed
      */
-    private function cache()
+    public function all()
     {
-        return $this->cache;
-    }
+        if ($this->isSupportTags == true) {
+            return $this->cache();
+        }
 
-    /**
-     * Refresh cache value
-     *
-     * @param string $key Setting key
-     * @return bool
-     */
-    public function refresh(string $key)
-    {
-        $this->cache()->forget($key);
-        $this->get($key);
-
-        return $this->has($key);
-    }
-
-    /**
-     * Get setting from cache
-     *
-     * @param string $key
-     * @return SettingManager
-     */
-    public function get(string $key)
-    {
-        return $this->cache()->rememberForever($key, function () use ($key) {
-            return Setting::find($key);
-        });
+        return null;
     }
 
     /**
      * Check has setting key in cache or not
      *
-     * @param string $key
-     * @return bool
+     * @param  string                     $key
      * @throws InvalidArgumentException
+     * @return bool
      */
     public function has(string $key): bool
     {
-        if ($this->isSupportTags()) {
-            // Check key value from cache tags
-            return $this->cache()->has($key);
-        }
-        // Ex: settings.key
-        $prefix = config('settings.cache_prefix');
-        $cache_key = $prefix . '.' . $key;
+        return $this->cache()->has($this->key($key));
+    }
 
-        // Check key value from cache if cache not support tags
-        return $this->cache()->has($cache_key);
+    /**
+     * Get setting from cache
+     *
+     * @param  string       $key
+     * @return array|null
+     */
+    public function get(string $key)
+    {
+        return $this->cache()->get($this->key($key));
+    }
+
+    /**
+     *
+     */
+    public function set(string $key, string $value, $meta = null)
+    {
+        if ($this->ttl == null) {
+            return $this->cache()->rememberForever($this->key($key), function () use ($key, $value, $meta) {
+                return [
+                    'key' => $key,
+                    'value' => $value,
+                    'meta' => $meta,
+                ];
+            });
+        }
+
+        return $this->cache()->remember($this->key($key), $this->ttl, function () use ($key, $value, $meta) {
+            return [
+                'key' => $key,
+                'value' => $value,
+                'meta' => $meta,
+            ];
+        });
+    }
+
+    /**
+     * Forget cache of setting
+     *
+     * @param  string $key
+     * @return bool
+     */
+    public function forget(string $key): bool
+    {
+        return $this->cache()->forget($this->key($key));
+    }
+
+    /**
+     * Flush all cache
+     */
+    public function flush(): bool
+    {
+        return $this->cache()->flush();
     }
 }

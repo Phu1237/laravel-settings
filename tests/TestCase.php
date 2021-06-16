@@ -2,7 +2,7 @@
 
 namespace Phu1237\LaravelSettings\Tests;
 
-use Phu1237\LaravelSettings\SettingsServiceProvider;
+use Phu1237\LaravelSettings\ServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -15,7 +15,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app)
     {
         return [
-            SettingsServiceProvider::class,
+            ServiceProvider::class,
         ];
     }
 

@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 class CreateSettingsTable extends Migration
 {
@@ -10,7 +10,8 @@ class CreateSettingsTable extends Migration
 
     public function __construct()
     {
-        $this->table = config('settings.table');
+        $session = config('settings.driver');
+        $this->table = config('settings.connections.'.$session.'.provider');
     }
 
     /**

@@ -2,14 +2,16 @@
 
 namespace Phu1237\LaravelSettings\Components;
 
-use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Illuminate\Contracts\View\View;
 use Phu1237\LaravelSettings\Facades\Setting;
 
 class Input extends Component
 {
     public $key;
+    public $default;
     public $class;
+    public $style;
 
     /**
      * Create a new component instance.
@@ -17,10 +19,12 @@ class Input extends Component
      * @param $key
      * @param $class
      */
-    public function __construct($key, $class = null)
+    public function __construct($key, $default = null, $class = null, $style = null)
     {
         $this->key = $key;
+        $this->default = $default;
         $this->class = $class;
+        $this->style = $style;
     }
 
     /**
@@ -36,9 +40,10 @@ class Input extends Component
             $value = $setting->value;
             $meta = $setting->meta;
             $class = $this->class;
+            $style = $this->style;
             $locked = $setting->is_locked();
 
-            return view('settings::components.input', compact('key', 'value', 'meta', 'class', 'locked'));
+            return view('settings::components.input', compact('key', 'value', 'meta', 'class', 'style', 'locked'));
         }
 
         return view('settings::components.input');
