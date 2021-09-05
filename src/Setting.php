@@ -1,4 +1,5 @@
 <?php
+
 namespace Phu1237\LaravelSettings;
 
 class Setting
@@ -8,11 +9,9 @@ class Setting
     public $meta;
 
     /**
-     * Setting object
+     * Setting object.
      *
-     * @param string $key
-     * @param string $value
-     * @param mixed  $meta
+     * @param mixed $meta
      */
     public function __construct(string $key = '', string $value = '', $meta = null, bool $default_meta = true)
     {
@@ -22,9 +21,10 @@ class Setting
     }
 
     /**
-     * Change meta type to json object
+     * Change meta type to json object.
      *
-     * @param  mixed   $meta
+     * @param mixed $meta
+     *
      * @return mixed
      */
     private function handleMeta($meta, $default_meta)
@@ -33,7 +33,7 @@ class Setting
             $meta = json_encode($meta);
 
             return json_decode(json_encode($meta));
-        } else if (is_string($meta)) {
+        } elseif (is_string($meta)) {
             if ($meta == '{}' && $default_meta == false) {
                 return json_decode($meta);
             }
@@ -43,7 +43,7 @@ class Setting
     }
 
     /**
-     * Get the key
+     * Get the key.
      *
      * @return string|null
      */
@@ -53,7 +53,7 @@ class Setting
     }
 
     /**
-     * Get the value
+     * Get the value.
      *
      * @return string
      */
@@ -63,10 +63,15 @@ class Setting
     }
 
     /**
-     * Get the meta
+     * Get the meta.
      */
     public function meta()
     {
         return $this->meta;
+    }
+
+    public function is_locked()
+    {
+        return $this->locked;
     }
 }

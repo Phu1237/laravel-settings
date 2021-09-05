@@ -2,8 +2,8 @@
 
 namespace Phu1237\LaravelSettings\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
@@ -36,9 +36,4 @@ class Setting extends Model
     ];
     // primary key of table
     protected $primaryKey = 'key';
-
-    public function is_locked()
-    {
-        return $this->locked;
-    }
 }

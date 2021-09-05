@@ -2,7 +2,6 @@
 
 namespace Phu1237\LaravelSettings;
 
-use Phu1237\LaravelSettings\SessionManager;
 use Phu1237\LaravelSettings\Models\Setting as SettingModel;
 
 class SettingManager
@@ -12,9 +11,7 @@ class SettingManager
     }
 
     /**
-     * Access session manager
-     *
-     * @return SessionManager
+     * Access session manager.
      */
     private function session(): SessionManager
     {
@@ -22,7 +19,7 @@ class SettingManager
     }
 
     /**
-     * Get all the settings
+     * Get all the settings.
      *
      * @return Collection
      */
@@ -45,10 +42,7 @@ class SettingManager
     }
 
     /**
-     * Check has setting key or not
-     *
-     * @param  string|null $key
-     * @return bool
+     * Check has setting key or not.
      */
     public function has(string $key = null): bool
     {
@@ -56,9 +50,10 @@ class SettingManager
     }
 
     /**
-     * @param  string       $key   Key of Setting
-     * @param  string|null  $value Value of Setting
-     * @param  string|array $metas Meta(s) of Setting
+     * @param string       $key   Key of Setting
+     * @param string|null  $value Value of Setting
+     * @param string|array $metas Meta(s) of Setting
+     *
      * @return mixed
      */
     public function store(string $key, string $value, $meta = null)
@@ -82,9 +77,10 @@ class SettingManager
     }
 
     /**
-     * Get setting
+     * Get setting.
      *
-     * @param  string              $key Key of setting
+     * @param string $key Key of setting
+     *
      * @return SettingModel|null
      */
     public function get(string $key)
@@ -102,8 +98,9 @@ class SettingManager
     }
 
     /**
-     * @param  string|array $key   Setting key
-     * @param  null         $value New setting value
+     * @param string|array $key   Setting key
+     * @param null         $value New setting value
+     *
      * @return mixed
      */
     public function set($key, $value = null)
@@ -123,9 +120,10 @@ class SettingManager
     }
 
     /**
-     * Delete setting(s)
+     * Delete setting(s).
      *
-     * @param  string|array $key Key(s) of setting want to forget
+     * @param string|array $key Key(s) of setting want to forget
+     *
      * @return bool
      */
     public function forget($key, bool $destroy = true)
@@ -148,7 +146,7 @@ class SettingManager
     }
 
     /**
-     * Flush all setting items
+     * Flush all setting items.
      */
     public function flush()
     {
@@ -157,10 +155,11 @@ class SettingManager
     }
 
     /**
-     * Get or set setting value
+     * Get or set setting value.
      *
-     * @param  string|array $key
-     * @param  null         $default
+     * @param string|array $key
+     * @param null         $default
+     *
      * @return mixed
      */
     public function value($key, $default = '')
@@ -179,11 +178,10 @@ class SettingManager
     }
 
     /**
-     * Get setting value
+     * Get setting value.
      *
-     * @param  string      $key     Key of setting
-     * @param  string|null $default Default value if not found key value
-     * @return string
+     * @param string      $key     Key of setting
+     * @param string|null $default Default value if not found key value
      */
     private function getValue(string $key, string $default = ''): string
     {
@@ -196,10 +194,11 @@ class SettingManager
     }
 
     /**
-     * Set setting value
+     * Set setting value.
      *
-     * @param  string  $key     Setting key
-     * @param  null    $value
+     * @param string $key   Setting key
+     * @param null   $value
+     *
      * @return mixed
      */
     private function setValue(string $key, $value = null)
@@ -213,18 +212,18 @@ class SettingManager
     }
 
     /**
-     * Get or set setting meta(s)
+     * Get or set setting meta(s).
      *
-     * @param  string  $key       Setting key
-     * @param  null    $attribute Meta attribute(s)
-     * @param  string  $default
+     * @param string $key       Setting key
+     * @param null   $attribute Meta attribute(s)
+     *
      * @return mixed
      */
     public function meta(string $key, $attribute = null, string $default = '')
     {
         // If attribute is exist
         if ($attribute != null) {
-            /**
+            /*
              * If attribute is an array, set value for each attribute in array
              * If not, get the value of attribute
              */
@@ -239,10 +238,11 @@ class SettingManager
     }
 
     /**
-     * Get setting meta
+     * Get setting meta.
      *
-     * @param  string   $key Key of setting
-     * @return Object
+     * @param string $key Key of setting
+     *
+     * @return object
      */
     private function getMeta(string $key)
     {
@@ -254,11 +254,11 @@ class SettingManager
     }
 
     /**
-     * Get setting meta attribute value
+     * Get setting meta attribute value.
      *
-     * @param  string        $key       Key of setting
-     * @param  string        $attribute Meta attribute want to get
-     * @param  string        $default
+     * @param string $key       Key of setting
+     * @param string $attribute Meta attribute want to get
+     *
      * @return string|null
      */
     private function getMetaAttr(string $key, string $attribute, string $default = ''): string
@@ -267,10 +267,10 @@ class SettingManager
     }
 
     /**
-     * Set setting meta attribute value
+     * Set setting meta attribute value.
      *
-     * @param  string              $key          Key of setting
-     * @param  array               $attributes
+     * @param string $key Key of setting
+     *
      * @return bool|SettingModel
      */
     private function setMetaAttr(string $key, array $attributes)
@@ -284,5 +284,15 @@ class SettingManager
         $this->session()->refresh($key);
 
         return true;
+    }
+
+    /**
+     * Get lock status.
+     *
+     * @return bool
+     */
+    public function is_locked(string $key)
+    {
+        return $this->get($key)->locked;
     }
 }

@@ -56,7 +56,7 @@ class ServiceProvider extends BaseServiceProvider
         // Load the view
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'settings');
         // Load the view components
-        $this->loadViewComponentsAs('settings', [
+        $this->loadViewComponentsAs('setting', [
             Input::class,
         ]);
         Blade::directive('setting', function ($expression) {
