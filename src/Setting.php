@@ -7,17 +7,19 @@ class Setting
     public $key;
     public $value;
     public $meta;
+    public $locked;
 
     /**
      * Setting object.
      *
      * @param mixed $meta
      */
-    public function __construct(string $key = '', string $value = '', $meta = null, bool $default_meta = true)
+    public function __construct(string $key = '', string $value = '', $meta = null, bool $default_meta = true, bool $locked = false)
     {
         $this->key = $key;
         $this->value = $value;
         $this->meta = $this->handleMeta($meta, $default_meta);
+        $this->locked = $locked;
     }
 
     /**
