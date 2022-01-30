@@ -1,1 +1,4 @@
-<input name="{{ $key }}" id="{{ $key }}" type="{{ $meta->type ?? 'text' }}" class="{{ $class }}" {{ $style != null ? 'style="'.$style.'"' : ''}} {{ !empty($meta->placeholder) ? 'placeholder="'.$meta->placeholder.'"' : '' }} value="{{ $value ?? '' }}" {{ isset($meta->required) && $meta->required === true ? 'required' : '' }} {{ $locked === true ? 'readonly' : '' }}>
+<input @foreach ($input_attributes as $key=> $value)
+{{ $key }}="{{ $value }}"
+@endforeach
+>

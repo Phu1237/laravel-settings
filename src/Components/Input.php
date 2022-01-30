@@ -35,14 +35,22 @@ class Input extends Component
     public function render()
     {
         $setting = Setting::get($this->key);
-        // Values
-        $key = $this->key;
-        $value = $setting ? $setting->value : $this->default;
-        $meta = $setting ? $setting->meta : null;
-        $class = $this->class;
-        $style = $this->style;
-        $locked = $setting ? $setting->is_locked() : true;
+        // Meta of input
+        $metas = [];
+        if ($meta = $setting ? $setting->meta : null) {
+            foreach ($meta as $key => $val) {
+                $metas[$key] = $val;
+            }
+        }
+        // Input attribute
+        $input_attributes = array_merge($metas, [
+            'key' => $this->key,
+            'value' => $setting ? $setting->value : $this->default,
+            'class' => $this->class,
+            'style' => $this->style,
+            'readonly' => $setting && $setting->is_locked() ? 'true' : 'false',
+        ]);
 
-        return view('settings::components.input', compact('key', 'value', 'meta', 'class', 'style', 'locked'));
+        return view('settings::components.input', compact('input_attributes'));
     }
 }
