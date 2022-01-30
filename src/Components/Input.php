@@ -2,8 +2,8 @@
 
 namespace Phu1237\LaravelSettings\Components;
 
-use Illuminate\View\Component;
 use Illuminate\Contracts\View\View;
+use Illuminate\View\Component;
 use Phu1237\LaravelSettings\Facades\Setting;
 
 class Input extends Component
@@ -35,17 +35,14 @@ class Input extends Component
     public function render()
     {
         $setting = Setting::get($this->key);
-        if ($setting) {
-            $key = $setting->key;
-            $value = $setting->value;
-            $meta = $setting->meta;
-            $class = $this->class;
-            $style = $this->style;
-            $locked = $setting->is_locked();
+        // Values
+        $key = $this->key;
+        $value = $setting ? $setting->value : $this->default;
+        $meta = $setting ? $setting->meta : null;
+        $class = $this->class;
+        $style = $this->style;
+        $locked = $setting ? $setting->is_locked() : true;
 
-            return view('settings::components.input', compact('key', 'value', 'meta', 'class', 'style', 'locked'));
-        }
-
-        return view('settings::components.input');
+        return view('settings::components.input', compact('key', 'value', 'meta', 'class', 'style', 'locked'));
     }
 }
