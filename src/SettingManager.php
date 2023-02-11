@@ -6,10 +6,6 @@ use Phu1237\LaravelSettings\Models\Setting as SettingModel;
 
 class SettingManager
 {
-    public function __construct()
-    {
-    }
-
     /**
      * Access session manager.
      */
@@ -25,19 +21,15 @@ class SettingManager
      */
     public function all()
     {
-        if ($this->session()->isEnable()) {
-            $all = $this->session()->all();
-            if ($all != null) {
-                return $all;
-            }
-        }
-        $model = SettingModel::all();
+        return $this->generateCollect(SettingModel::all());
+    }
+
+    private function generateCollect($list) {
         $collect = collect();
-        foreach ($model as $item) {
+        foreach ($list as $item) {
             $setting = new Setting($item->key, $item->value, $item->meta);
             $collect->push($setting);
         }
-
         return $collect;
     }
 
@@ -46,7 +38,7 @@ class SettingManager
      */
     public function has(string $key = null): bool
     {
-        return (bool) SettingModel::find($key);
+        return SettingModel::whereKey($key)->count() > 0;
     }
 
     /**
@@ -56,7 +48,7 @@ class SettingManager
      *
      * @return mixed
      */
-    public function store(string $key, string $value, $meta = null)
+    public function store(string $key, ?string $value, $meta = null)
     {
         $new_setting_value = ['key' => $key, 'value' => $value];
         if ($meta != null) {
@@ -87,14 +79,15 @@ class SettingManager
     {
         if ($this->session()->isEnable()) {
             $setting = $this->session()->getOrSet($key);
-        } else {
-            $model = SettingModel::find($key);
-            if ($model != null) {
-                $setting = new Setting($model->key, $model->value, $model->meta);
-            }
+            return $setting;
+        }
+        $model = SettingModel::find($key);
+        if ($model != null) {
+            $setting = new Setting($model->key, $model->value, $model->meta);
+            return $setting;
         }
 
-        return $setting ?? null;
+        return null;
     }
 
     /**
@@ -130,17 +123,13 @@ class SettingManager
     {
         if (is_array($key)) {
             foreach ($key as $item) {
-                if ($destroy == true) {
-                    SettingModel::destroy($item);
-                }
-                $this->session()->forget($item);
+                $this->forget($item);
             }
-        } else {
-            if ($destroy == true) {
-                SettingModel::destroy($key);
-            }
-            $this->session()->forget($key);
         }
+        if ($destroy == true) {
+            SettingModel::destroy($key);
+        }
+        $this->session()->forget($key);
 
         return true;
     }
@@ -187,7 +176,7 @@ class SettingManager
     {
         $settings = $this->get($key);
         if (!isset($settings)) {
-            return $default ?? ''; // If not found setting value
+            return $default;
         }
 
         return $settings->value;
@@ -222,19 +211,18 @@ class SettingManager
     public function meta(string $key, $attribute = null, string $default = '')
     {
         // If attribute is exist
-        if ($attribute != null) {
-            /*
-             * If attribute is an array, set value for each attribute in array
-             * If not, get the value of attribute
-             */
-            if (is_array($attribute)) {
-                return $this->setMetaAttr($key, $attribute);
-            } else {
-                return $this->getMetaAttr($key, $attribute, $default);
-            }
+        if ($attribute == null) {
+            return $this->getMeta($key);
         }
 
-        return $this->getMeta($key);
+        /*
+        * If attribute is an array, set value for each attribute in array
+        * If not, get the value of attribute
+        */
+        if (is_array($attribute)) {
+            return $this->setMetaAttr($key, $attribute);
+        }
+        return $this->getMetaAttr($key, $attribute, $default);
     }
 
     /**

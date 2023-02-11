@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/packagist/v/phu1237/laravel-settings?style=flat-square)](https://packagist.org/packages/phu1237/laravel-settings)
 [![License](https://img.shields.io/packagist/l/phu1237/laravel-settings?style=flat-square)](https://github.com/Phu1237/laravel-settings/blob/master/LICENSE)
 
-Global setting for laravel. Can use in controller, blade, etc.
+Global setting for Laravel. Can use in controllers, blades, etc.
 
 ## Content table
 

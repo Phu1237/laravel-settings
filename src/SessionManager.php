@@ -7,9 +7,7 @@ use Phu1237\LaravelSettings\Models\Setting as SettingModel;
 
 class SessionManager
 {
-    public function __construct()
-    {
-    }
+    private $supportedDrivers = ['cache'];
 
     private function session()
     {
@@ -26,7 +24,7 @@ class SessionManager
      */
     public function isEnable(): bool
     {
-        return config('settings.session') != null;
+        return config('settings.session') != null && in_array(config('settings.session'), $this->supportedDrivers);
     }
 
     /**

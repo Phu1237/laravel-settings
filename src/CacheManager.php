@@ -67,10 +67,6 @@ class CacheManager
      */
     public function all()
     {
-        if ($this->isSupportTags == true) {
-            return $this->cache();
-        }
-
         return null;
     }
 
@@ -102,22 +98,19 @@ class CacheManager
      */
     public function set(string $key, string $value, $meta = null)
     {
+        $item = [
+            'key' => $key,
+            'value' => $value,
+            'meta' => $meta,
+        ];
         if ($this->ttl == null) {
-            return $this->cache()->rememberForever($this->key($key), function () use ($key, $value, $meta) {
-                return [
-                    'key' => $key,
-                    'value' => $value,
-                    'meta' => $meta,
-                ];
+            return $this->cache()->rememberForever($this->key($key), function () use ($item) {
+                return $item;
             });
         }
 
-        return $this->cache()->remember($this->key($key), $this->ttl, function () use ($key, $value, $meta) {
-            return [
-                'key' => $key,
-                'value' => $value,
-                'meta' => $meta,
-            ];
+        return $this->cache()->remember($this->key($key), $this->ttl, function () use ($item) {
+            return $item;
         });
     }
 

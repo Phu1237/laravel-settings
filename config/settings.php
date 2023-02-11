@@ -9,6 +9,7 @@ return [
     /*
      * Session driver
      *
+     * Currently support: cache
      * null = disable
      */
     'session' => env('SETTINGS_SESSION', 'cache'),
