@@ -48,8 +48,10 @@ class Input extends Component
             'value' => $setting ? $setting->value : $this->default,
             'class' => $this->class,
             'style' => $this->style,
-            'readonly' => $setting && $setting->is_locked() ? 'true' : 'false',
         ]);
+        if ($setting && $setting->is_locked()) {
+            $input_attributes['disabled'] = 'true';
+        }
 
         return view('settings::components.input', compact('input_attributes'));
     }
