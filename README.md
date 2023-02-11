@@ -109,7 +109,7 @@ settings()->meta('key', 'attribute', 'default value');
 To set field value to setting:
 
 ```php
-// Set value for single key 
+// Set value for single key
 settings()->set('key', 'value');
 // Set value for single or multiple key(s)
 settings([
@@ -139,7 +139,7 @@ settings()->all();
 // Check if setting exists or not
 settings()->has('key');
 // Update or create with key(string), value(string), meta(array)
-settings()->store('key', 'value', 'meta'); 
+settings()->store('key', 'value', 'meta');
 // Forget (Destroy) setting
 settings()->forget('key');
 settings()->forget(['key1', 'key2']);
@@ -158,21 +158,7 @@ Get setting value:
 ### Blade component
 
 ```html
-<x-setting-input key="key" default="default" class="your class" style="your style" />
-```
-
-## Test
-
-Publish test files:
-
-```bash
-php artisan vendor:publish --provider="Phu1237\LaravelSettings\ServiceProvider" --tag=tests
-```
-
-Then run:
-
-```bash
-php artisan test
+<x-setting-input key="key" default="default" class="your-class" style="your-styles" />
 ```
 
 ## Command

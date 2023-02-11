@@ -5,7 +5,12 @@ return [
      * Driver to save settings
      */
     'driver' => env('SETTINGS_DRIVER', 'database'),
-    // Session driver, null = disable
+
+    /*
+     * Session driver
+     *
+     * null = disable
+     */
     'session' => env('SETTINGS_SESSION', 'cache'),
 
     /**
