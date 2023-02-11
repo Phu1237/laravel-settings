@@ -9,7 +9,6 @@ class Setting extends Model
 {
     use HasFactory;
 
-    public $incrementing = false;
     public $timestamps = false;
 
     public function __construct()
@@ -36,4 +35,18 @@ class Setting extends Model
     ];
     // primary key of table
     protected $primaryKey = 'key';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the auto-incrementing ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
 }
